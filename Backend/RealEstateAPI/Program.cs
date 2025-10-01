@@ -1,5 +1,6 @@
 using RealEstateAPI.Application.Extensions;
 using RealEstateAPI.Infrastructure.Services;
+using RealEstateAPI.Infrastructure.Data;
 using RealEstateAPI.Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,5 +83,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Seed database in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+    await seeder.SeedAsync();
+}
 
 await app.RunAsync();

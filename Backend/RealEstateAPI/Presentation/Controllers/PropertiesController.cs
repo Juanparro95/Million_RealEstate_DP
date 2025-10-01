@@ -44,12 +44,19 @@ public class PropertiesController : ControllerBase
 
             var properties = await _propertyService.GetPropertiesAsync(name, address, minPrice, maxPrice, page, pageSize);
             
+            _logger.LogInformation("Retrieved {Count} properties", properties.Count());
+            
             return Ok(properties);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting properties");
-            return StatusCode(500, "An error occurred while retrieving properties");
+            _logger.LogError(ex, "Error getting properties with filters: name={Name}, address={Address}, minPrice={MinPrice}, maxPrice={MaxPrice}",
+                name, address, minPrice, maxPrice);
+            return StatusCode(500, new { 
+                message = "An error occurred while retrieving properties", 
+                error = ex.Message,
+                stackTrace = ex.StackTrace 
+            });
         }
     }
 

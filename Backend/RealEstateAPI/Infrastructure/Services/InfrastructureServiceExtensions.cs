@@ -26,6 +26,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IPropertyImageRepository, PropertyImageRepository>();
         services.AddScoped<IPropertyTraceRepository, PropertyTraceRepository>();
 
+        // Registrar seeder
+        services.AddScoped<DatabaseSeeder>();
+
         return services;
     }
 }
