@@ -10,11 +10,13 @@ public class HealthController : ControllerBase
 {
     private readonly MongoDbContext _context;
     private readonly ILogger<HealthController> _logger;
+    private readonly DatabaseSeeder _seeder;
 
-    public HealthController(MongoDbContext context, ILogger<HealthController> logger)
+    public HealthController(MongoDbContext context, ILogger<HealthController> logger, DatabaseSeeder seeder)
     {
         _context = context;
         _logger = logger;
+        _seeder = seeder;
     }
 
     /// <summary>
@@ -100,6 +102,37 @@ public class HealthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting database stats");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Recargar datos de ejemplo en la base de datos
+    /// </summary>
+    /// <returns>Resultado de la operación</returns>
+    [HttpPost("reseed")]
+    public async Task<ActionResult> ReseedDatabase()
+    {
+        try
+        {
+            _logger.LogInformation("Reseeding database...");
+            
+            // Limpiar colecciones existentes
+            await _context.Properties.DeleteManyAsync(Builders<Domain.Entities.Property>.Filter.Empty);
+            await _context.PropertyImages.DeleteManyAsync(Builders<Domain.Entities.PropertyImage>.Filter.Empty);
+            await _context.PropertyTraces.DeleteManyAsync(Builders<Domain.Entities.PropertyTrace>.Filter.Empty);
+            await _context.Owners.DeleteManyAsync(Builders<Domain.Entities.Owner>.Filter.Empty);
+            
+            // Ejecutar seeder
+            await _seeder.SeedAsync();
+            
+            _logger.LogInformation("Database reseeded successfully");
+            
+            return Ok(new { message = "Database reseeded successfully", timestamp = DateTime.UtcNow });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reseeding database");
             return StatusCode(500, new { error = ex.Message });
         }
     }

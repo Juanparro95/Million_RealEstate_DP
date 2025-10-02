@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace RealEstateAPI.Infrastructure.Data;
 
-public class MongoDbContext
+public class MongoDbContext : IMongoDbContext
 {
     private readonly IMongoDatabase _database;
 
@@ -16,7 +16,7 @@ public class MongoDbContext
         _database = client.GetDatabase(settings.Value.DatabaseName);
     }
 
-    public IMongoCollection<T> GetCollection<T>() where T : BaseEntity
+    public virtual IMongoCollection<T> GetCollection<T>() where T : BaseEntity
     {
         var collectionName = GetCollectionName<T>();
         return _database.GetCollection<T>(collectionName);

@@ -21,7 +21,7 @@ public class PropertyDto
     public int Year { get; set; }
     public string IdOwner { get; set; } = string.Empty;
     public OwnerDto? Owner { get; set; }
-    public string? MainImage { get; set; } // Solo una imagen principal
+    public string? MainImage { get; set; }
     public List<PropertyImageDto> Images { get; set; } = new();
     public List<PropertyTraceDto> Traces { get; set; } = new();
 }
@@ -55,6 +55,7 @@ public class PropertyListDto
     public string Address { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int Year { get; set; }
+    public string IdOwner { get; set; } = string.Empty;
     public string OwnerName { get; set; } = string.Empty;
     public string MainImage { get; set; } = string.Empty;
 }

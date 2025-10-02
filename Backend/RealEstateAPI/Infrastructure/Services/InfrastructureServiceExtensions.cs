@@ -18,6 +18,7 @@ public static class InfrastructureServiceExtensions
             configuration.GetSection("MongoDbSettings"));
 
         // Registrar DbContext
+        services.AddSingleton<IMongoDbContext, MongoDbContext>();
         services.AddSingleton<MongoDbContext>();
 
         // Registrar repositorios

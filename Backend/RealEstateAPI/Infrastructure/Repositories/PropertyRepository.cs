@@ -7,7 +7,7 @@ namespace RealEstateAPI.Infrastructure.Repositories;
 
 public class PropertyRepository : GenericRepository<Property>, IPropertyRepository
 {
-    public PropertyRepository(MongoDbContext context) : base(context)
+    public PropertyRepository(IMongoDbContext context) : base(context)
     {
     }
 
@@ -31,6 +31,9 @@ public class PropertyRepository : GenericRepository<Property>, IPropertyReposito
     {
         var filterBuilder = Builders<Property>.Filter;
         var filters = new List<FilterDefinition<Property>>();
+
+        // Log de entrada
+        Console.WriteLine($"[REPO] GetPropertiesByFilterAsync - name: {name}, address: {address}, minPrice: {minPrice}, maxPrice: {maxPrice}");
 
         // Filtro por nombre (búsqueda parcial, case-insensitive)
         if (!string.IsNullOrEmpty(name))
@@ -58,9 +61,15 @@ public class PropertyRepository : GenericRepository<Property>, IPropertyReposito
         // Solo propiedades activas
         filters.Add(filterBuilder.Eq(p => p.IsActive, true));
 
-        var combinedFilter = filters.Count > 0 ? filterBuilder.And(filters) : filterBuilder.Empty;
+        var combinedFilter = filters.Count > 1 ? filterBuilder.And(filters) : filters[0];
         
-        return await _collection.Find(combinedFilter).ToListAsync();
+        Console.WriteLine($"[REPO] Filter count: {filters.Count}, Combined filter: {combinedFilter}");
+        
+        var result = await _collection.Find(combinedFilter).ToListAsync();
+        
+        Console.WriteLine($"[REPO] Found {result.Count} properties");
+        
+        return result;
     }
 
     public async Task<Property?> GetPropertyWithImagesAsync(string id)
@@ -95,7 +104,13 @@ public class PropertyRepository : GenericRepository<Property>, IPropertyReposito
 
     public async Task<Property?> GetPropertyCompleteAsync(string id)
     {
+        // Primero buscar por _id de MongoDB, luego por IdProperty si no se encuentra
         var property = await GetByIdAsync(id);
+        if (property == null)
+        {
+            property = await GetByIdPropertyAsync(id);
+        }
+        
         if (property != null)
         {
             // Cargar imágenes

@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using RealEstateAPI.Domain.Entities;
 using RealEstateAPI.Domain.Repositories;
@@ -8,10 +9,10 @@ namespace RealEstateAPI.Infrastructure.Repositories;
 
 public abstract class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 {
-    protected readonly MongoDbContext _context;
+    protected readonly IMongoDbContext _context;
     protected readonly IMongoCollection<T> _collection;
 
-    protected GenericRepository(MongoDbContext context)
+    protected GenericRepository(IMongoDbContext context)
     {
         _context = context;
         _collection = _context.GetCollection<T>();
@@ -19,7 +20,13 @@ public abstract class GenericRepository<T> : IGenericRepository<T> where T : Bas
 
     public virtual async Task<T?> GetByIdAsync(string id)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
+        // Convertir el string a ObjectId para la búsqueda
+        if (!ObjectId.TryParse(id, out ObjectId objectId))
+        {
+            return null; // ID inválido
+        }
+        
+        var filter = Builders<T>.Filter.Eq("_id", objectId);
         return await _collection.Find(filter).FirstOrDefaultAsync();
     }
 
@@ -41,20 +48,36 @@ public abstract class GenericRepository<T> : IGenericRepository<T> where T : Bas
 
     public virtual async Task UpdateAsync(T entity)
     {
-        var filter = Builders<T>.Filter.Eq("_id", GetEntityId(entity));
+        if (!ObjectId.TryParse(GetEntityId(entity), out ObjectId objectId))
+        {
+            throw new ArgumentException("Invalid entity ID format");
+        }
+        
+        var filter = Builders<T>.Filter.Eq("_id", objectId);
         await _collection.ReplaceOneAsync(filter, entity);
     }
 
     public virtual async Task DeleteAsync(string id)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
+        if (!ObjectId.TryParse(id, out ObjectId objectId))
+        {
+            return; // ID inválido, no hacer nada
+        }
+        
+        var filter = Builders<T>.Filter.Eq("_id", objectId);
         await _collection.DeleteOneAsync(filter);
     }
 
     public virtual async Task<bool> ExistsAsync(string id)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
-        return await _collection.Find(filter).AnyAsync();
+        if (!ObjectId.TryParse(id, out ObjectId objectId))
+        {
+            return false; // ID inválido
+        }
+        
+        var filter = Builders<T>.Filter.Eq("_id", objectId);
+        var count = await _collection.CountDocumentsAsync(filter);
+        return count > 0;
     }
 
     public virtual async Task<int> CountAsync()
