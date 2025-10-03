@@ -53,6 +53,6 @@ npm test
 **Backend:** .NET 9, MongoDB, MediatR, AutoMapper, NUnit  
 **Frontend:** Next.js 15, React 19, TypeScript, TanStack Query, Tailwind CSS, Jest
 
-## Contacto
+## Realizado por:
 
-DavidParro - Prueba técnica Million Luxury  
+Juan David Parroquiano Vargas - Prueba técnica Million Luxury  
