@@ -15,7 +15,6 @@ public record Address(
     
     public static Address Create(string fullAddress)
     {
-        // Simple parser - en un proyecto real sería más robusto
         var parts = fullAddress.Split(',').Select(p => p.Trim()).ToArray();
         
         return new Address(

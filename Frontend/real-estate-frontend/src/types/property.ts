@@ -1,6 +1,3 @@
-// Tipos que coinciden con los DTOs del backend .NET
-// Según los requisitos de la prueba técnica
-
 export interface Owner {
   id: string;
   idOwner: string;
@@ -28,7 +25,7 @@ export interface PropertyTrace {
   idProperty: string;
 }
 
-// Detalles completos de una propiedad (para ver detalles individuales)
+// Detalles completos de una propiedad
 export interface PropertyDetail {
   id: string;
   idProperty: string;
@@ -44,8 +41,6 @@ export interface PropertyDetail {
   traces: PropertyTrace[];
 }
 
-// Lista de propiedades con campos específicos según requisitos:
-// IdOwner, Name, Address Property, Price Property and just one image
 export interface PropertyListItem {
   id: string;
   idProperty: string;
@@ -55,14 +50,12 @@ export interface PropertyListItem {
   year: number;
   ownerName: string;
   mainImage: string;
-  // Propiedades adicionales para mejorar la UI
   bedrooms?: number;
   bathrooms?: number;
   area?: number;
   images?: PropertyImage[];
 }
 
-// Filtros según requisitos: name, address and range price
 export interface PropertyFilters {
   name?: string;
   address?: string;

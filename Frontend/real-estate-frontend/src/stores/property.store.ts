@@ -102,7 +102,7 @@ export const usePropertyStore = create<PropertyState>()(
           set({
             properties,
             loading: false,
-            totalProperties: properties.length, // En un caso real, esto vendría del backend
+            totalProperties: properties.length,
           });
         } catch (error) {
           set({

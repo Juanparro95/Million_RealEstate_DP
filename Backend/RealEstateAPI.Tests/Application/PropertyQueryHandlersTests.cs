@@ -81,6 +81,9 @@ public class PropertyQueryHandlersTests
             query.Name, query.Address, query.MinPrice, query.MaxPrice))
             .ReturnsAsync(properties);
 
+        _mockRepository.Setup(r => r.GetPropertyCompleteAsync(It.IsAny<string>()))
+            .ReturnsAsync(properties[0]);
+
         _mockMapper.Setup(m => m.Map<PropertyListDto>(It.IsAny<Property>()))
                   .Returns(expectedDtos[0]);
 
@@ -123,7 +126,7 @@ public class PropertyQueryHandlersTests
             Year = 2020
         };
 
-        _mockRepository.Setup(r => r.GetByIdAsync(propertyId))
+        _mockRepository.Setup(r => r.GetPropertyCompleteAsync(propertyId))
                       .ReturnsAsync(property);
 
         _mockMapper.Setup(m => m.Map<PropertyDto>(property))
@@ -137,7 +140,7 @@ public class PropertyQueryHandlersTests
         result!.Id.Should().Be(propertyId);
         result.Name.Should().Be("Test Property");
 
-        _mockRepository.Verify(r => r.GetByIdAsync(propertyId), Times.Once);
+        _mockRepository.Verify(r => r.GetPropertyCompleteAsync(propertyId), Times.Once);
         _mockMapper.Verify(m => m.Map<PropertyDto>(property), Times.Once);
     }
 
@@ -148,7 +151,7 @@ public class PropertyQueryHandlersTests
         var propertyId = "nonexistent";
         var query = new GetPropertyByIdQuery(propertyId);
 
-        _mockRepository.Setup(r => r.GetByIdAsync(propertyId))
+        _mockRepository.Setup(r => r.GetPropertyCompleteAsync(propertyId))
                       .ReturnsAsync((Property?)null);
 
         // Act
@@ -157,7 +160,7 @@ public class PropertyQueryHandlersTests
         // Assert
         result.Should().BeNull();
 
-        _mockRepository.Verify(r => r.GetByIdAsync(propertyId), Times.Once);
+        _mockRepository.Verify(r => r.GetPropertyCompleteAsync(propertyId), Times.Once);
         _mockMapper.Verify(m => m.Map<PropertyDto>(It.IsAny<Property>()), Times.Never);
     }
 
@@ -189,7 +192,7 @@ public class PropertyQueryHandlersTests
             Year = 2020
         };
 
-        _mockRepository.Setup(r => r.GetByIdAsync(propertyId))
+        _mockRepository.Setup(r => r.GetPropertyCompleteAsync(propertyId))
                       .ReturnsAsync(property);
 
         _mockMapper.Setup(m => m.Map<PropertyDto>(It.IsAny<Property>()))
@@ -202,7 +205,7 @@ public class PropertyQueryHandlersTests
         result.Should().NotBeNull();
         result!.Id.Should().Be(propertyId);
 
-        _mockRepository.Verify(r => r.GetByIdAsync(propertyId), Times.Once);
+        _mockRepository.Verify(r => r.GetPropertyCompleteAsync(propertyId), Times.Once);
     }
 
     [Test]
@@ -217,10 +220,10 @@ public class PropertyQueryHandlersTests
 
         var properties = new List<Property>
         {
-            new Property { Id = "1", Name = "Property 1" },
-            new Property { Id = "2", Name = "Property 2" },
-            new Property { Id = "3", Name = "Property 3" },
-            new Property { Id = "4", Name = "Property 4" }
+            new Property { Id = "1", IdProperty = "PROP1", Name = "Property 1" },
+            new Property { Id = "2", IdProperty = "PROP2", Name = "Property 2" },
+            new Property { Id = "3", IdProperty = "PROP3", Name = "Property 3" },
+            new Property { Id = "4", IdProperty = "PROP4", Name = "Property 4" }
         };
 
         var dtos = properties.Select(p => new PropertyListDto 
@@ -238,6 +241,13 @@ public class PropertyQueryHandlersTests
         _mockRepository.Setup(r => r.GetPropertiesByFilterAsync(null, null, null, null))
                       .ReturnsAsync(properties);
 
+        _mockRepository.Setup(r => r.GetPropertyCompleteAsync(It.IsAny<string>()))
+                      .ReturnsAsync((string id) => 
+                      {
+                          var prop = properties.FirstOrDefault(p => p.IdProperty == id);
+                          return prop ?? properties[0];
+                      });
+
         _mockMapper.Setup(m => m.Map<PropertyListDto>(It.IsAny<Property>()))
                   .Returns<Property>(p => dtos.First(d => d.Id == p.Id));
 
@@ -246,8 +256,8 @@ public class PropertyQueryHandlersTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2); // PageSize = 2
-        result.First().Id.Should().Be("3"); // Skip 2 items (page 2)
+        result.Should().HaveCount(2);
+        result.First().Id.Should().Be("3");
         result.Last().Id.Should().Be("4");
     }
 }
